@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Entities>
+  <ExtensionPackages>
+    <ExtensionPackage 
+      name="PythonResource"
+      packageVersion="0.12.0"
+      vendor="Accenture Italy - Industry X"
+      description="Extension to execute Python code as a ThingWorx service"
+      minimumThingWorxVersion="8.3.0"
+      dependsOn="">
+    
+      <JarResources>
+        <FileResource description="" file="Pythonresource.jar" type="JAR"/>
+        <FileResource description="" file="jython-standalone-2.7.2.jar" type="JAR"/>
+      </JarResources>
+    </ExtensionPackage>
+  </ExtensionPackages>
+  
+  <Resources>
+    <Resource aspect.isCreatable="false" aspect.isEditableExtensionObject="false" className="com.thingworx.extension.custom.python.PythonResource" description="" name="PythonResource"/>
+  </Resources>
+</Entities>

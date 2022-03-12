@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.ant.freeform</type>
+    <configuration>
+        <general-data xmlns="http://www.netbeans.org/ns/freeform-project/1">
+            <name>PythonResource</name>
+        </general-data>
+        <general-data xmlns="http://www.netbeans.org/ns/freeform-project/2">
+            <!-- Do not use Project Properties customizer when editing this file manually. 
+      To prevent the customizer from showing, create nbproject/project.properties file and enter 
+     auxiliary.show.customizer=false 
+     property there. Adding 
+     auxiliary.show.customizer.message=<message>
+      will show your customized message when someone attempts to open the customizer.  -->
+            <name>PythonResource</name>
+            <properties>
+                <property name="ant.script">build-extension.xml</property>
+            </properties>
+            <folders>
+                <source-folder>
+                    <label>PythonResource</label>
+                    <location>.</location>
+                    <encoding>windows-1252</encoding>
+                </source-folder>
+                <source-folder>
+                    <label>src</label>
+                    <type>java</type>
+                    <location>src</location>
+                    <encoding>windows-1252</encoding>
+                </source-folder>
+                <source-folder>
+                    <label>configfiles</label>
+                    <type>java</type>
+                    <location>configfiles</location>
+                    <encoding>windows-1252</encoding>
+                </source-folder>
+            </folders>
+            <ide-actions>
+                <action name="build">
+                    <script>${ant.script}</script>
+                    <target>build</target>
+                </action>
+                <action name="clean">
+                    <script>${ant.script}</script>
+                    <target>clean</target>
+                </action>
+                <action name="rebuild">
+                    <script>${ant.script}</script>
+                    <target>clean</target>
+                    <target>build</target>
+                </action>
+            </ide-actions>
+            <view>
+                <items>
+                    <source-folder style="packages">
+                        <label>src</label>
+                        <location>src</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>configfiles</label>
+                        <location>configfiles</location>
+                    </source-folder>
+                    <source-file>
+                        <location>${ant.script}</location>
+                    </source-file>
+                </items>
+                <context-menu>
+                    <ide-action name="build"/>
+                    <ide-action name="rebuild"/>
+                    <ide-action name="clean"/>
+                </context-menu>
+            </view>
+            <subprojects/>
+        </general-data>
+        <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/4">
+            <compilation-unit>
+                <package-root>src</package-root>
+                <classpath mode="compile">twx-lib/custom-rhino-js-5.1.0.jar;twx-lib/jackson-annotations-2.9.5.jar;twx-lib/jackson-core-2.9.5.jar;twx-lib/jackson-databind-2.9.5.jar;twx-lib/jackson-dataformat-smile-2.9.5.jar;twx-lib/joda-time-2.9.4.jar;twx-lib/logback-classic-1.2.3.jar;twx-lib/logback-core-1.2.3.jar;twx-lib/slf4j-api-1.7.25.jar;twx-lib/thingworx-communications-client-8.3.0-b349.jar;twx-lib/thingworx-communications-server-8.3.0-b349.jar;twx-lib/thingworx-ext-sdk-8.3.0-b349.jar;twx-lib/thingworx-javadocs-8.3.0-b349.jar;lib/jython-standalone-2.7.2.jar</classpath>
+                <source-level>1.8</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>configfiles</package-root>
+                <source-level>1.8</source-level>
+            </compilation-unit>
+        </java-data>
+    </configuration>
+</project>
