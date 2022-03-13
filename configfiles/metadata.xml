@@ -3,7 +3,7 @@
   <ExtensionPackages>
     <ExtensionPackage 
       name="PythonResource"
-      packageVersion="0.12.0"
+      packageVersion="0.13.1"
       vendor="Accenture Italy - Industry X"
       description="Extension to execute Python code as a ThingWorx service"
       minimumThingWorxVersion="8.3.0"

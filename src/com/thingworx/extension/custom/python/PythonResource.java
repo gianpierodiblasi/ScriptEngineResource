@@ -5,6 +5,7 @@ import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
 import com.thingworx.resources.Resource;
+import java.util.Collections;
 import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,6 +65,8 @@ public class PythonResource extends Resource {
         result = pyObject.asDouble();
       } else if (PyString.class.isInstance(pyObject)) {
         result = pyObject.asString();
+      } else if (PyList.class.isInstance(pyObject)) {
+        result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArray((PyList) pyObject)));
       } else {
         throw new Exception("result is a not supported type " + pyObject.getClass());
       }
@@ -94,5 +97,29 @@ public class PythonResource extends Resource {
     }
 
     return pyList;
+  }
+
+  private JSONArray getFromArray(PyList pyList) throws Exception {
+    JSONArray jsonArray = new JSONArray();
+
+    for (PyObject cell : pyList.getArray()) {
+      if (PyBoolean.class.isInstance(cell)) {
+        jsonArray.put(((PyBoolean) cell).getBooleanValue());
+      } else if (PyFloat.class.isInstance(cell)) {
+        jsonArray.put(cell.asDouble());
+      } else if (PyInteger.class.isInstance(cell)) {
+        jsonArray.put(cell.asDouble());
+      } else if (PyLong.class.isInstance(cell)) {
+        jsonArray.put(cell.asDouble());
+      } else if (PyString.class.isInstance(cell)) {
+        jsonArray.put(cell.asString());
+      } else if (PyList.class.isInstance(cell)) {
+        jsonArray.put(this.getFromArray((PyList) cell));
+      } else {
+        throw new Exception("result array has a cell with a not supported type " + cell.getClass());
+      }
+    }
+
+    return jsonArray;
   }
 }
