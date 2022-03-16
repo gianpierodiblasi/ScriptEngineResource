@@ -3,9 +3,9 @@
   <ExtensionPackages>
     <ExtensionPackage 
       name="ScriptEngineResource"
-      packageVersion="0.13.1"
+      packageVersion="0.15.0"
       vendor="Accenture Italy - Industry X"
-      description="Extension to execute script code (Python JavaScript, etc.) as a ThingWorx service"
+      description="Extension to execute scripting code (Python JavaScript, etc.) as a ThingWorx service"
       minimumThingWorxVersion="8.3.0"
       dependsOn="">
     

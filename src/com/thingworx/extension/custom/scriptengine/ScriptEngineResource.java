@@ -142,43 +142,48 @@ public class ScriptEngineResource extends Resource {
 
     Object result;
     Context cx = new ContextFactory().enterContext();
-    Scriptable scriptable = cx.initStandardObjects();
 
-    for (Iterator<String> iter = parameters.keys(); iter.hasNext();) {
-      String name = iter.next();
+    try {
+      Scriptable scriptable = cx.initStandardObjects();
 
-      Object parameter = parameters.get(name);
-      if (parameter instanceof Boolean) {
-        scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
-      } else if (parameter instanceof Number) {
-        scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
-      } else if (parameter instanceof String) {
-        scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
-      } else if (parameter instanceof JSONArray) {
-        scriptable.put(name, scriptable, Context.javaToJS(this.putIntoArrayJavaScript(name, parameters.getJSONArray(name)), scriptable));
-      } else {
-        throw new Exception("parameter " + name + " is a not supported type " + parameter.getClass());
+      for (Iterator<String> iter = parameters.keys(); iter.hasNext();) {
+        String name = iter.next();
+
+        Object parameter = parameters.get(name);
+        if (parameter instanceof Boolean) {
+          scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
+        } else if (parameter instanceof Number) {
+          scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
+        } else if (parameter instanceof String) {
+          scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
+        } else if (parameter instanceof JSONArray) {
+          scriptable.put(name, scriptable, Context.javaToJS(this.putIntoArrayJavaScript(name, parameters.getJSONArray(name)), scriptable));
+        } else {
+          throw new Exception("parameter " + name + " is a not supported type " + parameter.getClass());
+        }
       }
-    }
 
-    cx.compileString(code, "", 0, null).exec(cx, scriptable);
+      cx.compileString(code, "", 0, null).exec(cx, scriptable);
 
-    Object object = scriptable.get(resultParameter, scriptable);
-    if (object instanceof Wrapper) {
-      object = ((Wrapper) object).unwrap();
-    }
-    if (object instanceof Boolean) {
-      result = object;
-    } else if (object instanceof Number) {
-      result = object;
-    } else if (object instanceof String) {
-      result = object;
-    } else if (object.getClass().isArray()) {
-      result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArrayJavaScript((Object[]) object)));
-    } else if (object instanceof Collection) {
-      result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArrayJavaScript(((Collection) object).toArray())));
-    } else {
-      throw new Exception("result is a not supported type " + object.getClass());
+      Object object = scriptable.get(resultParameter, scriptable);
+      if (object instanceof Wrapper) {
+        object = ((Wrapper) object).unwrap();
+      }
+      if (object instanceof Boolean) {
+        result = object;
+      } else if (object instanceof Number) {
+        result = object;
+      } else if (object instanceof String) {
+        result = object;
+      } else if (object.getClass().isArray()) {
+        result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArrayJavaScript((Object[]) object)));
+      } else if (object instanceof Collection) {
+        result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArrayJavaScript(((Collection) object).toArray())));
+      } else {
+        throw new Exception("result is a not supported type " + object.getClass());
+      }
+    } finally {
+      Context.exit();
     }
 
     SCRIPT_LOGGER.debug("ScriptEngineResource - execJavaScript -> Stop");
