@@ -1,4 +1,4 @@
-package com.thingworx.extension.custom.python;
+package com.thingworx.extension.custom.scriptengine;
 
 import com.thingworx.logging.LogUtilities;
 import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
@@ -26,9 +26,9 @@ import org.python.core.PyString;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 
-public class PythonResource extends Resource {
+public class ScriptEngineResource extends Resource {
 
-  private final static Logger SCRIPT_LOGGER = LogUtilities.getInstance().getScriptLogger(PythonResource.class);
+  private final static Logger SCRIPT_LOGGER = LogUtilities.getInstance().getScriptLogger(ScriptEngineResource.class);
   private static final long serialVersionUID = 1L;
 
   @ThingworxServiceDefinition(name = "execPython", description = "", category = "", isAllowOverride = false, aspects = {"isAsync:false"})
@@ -38,7 +38,7 @@ public class PythonResource extends Resource {
           @ThingworxServiceParameter(name = "parameters", description = "", baseType = "JSON", aspects = {"isRequired:true"}) JSONObject parameters,
           @ThingworxServiceParameter(name = "resultParameter", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String resultParameter,
           @ThingworxServiceParameter(name = "code", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String code) throws Exception {
-    SCRIPT_LOGGER.debug("PythonResource - execPython -> Start");
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execPython -> Start");
 
     Object result;
     try (PythonInterpreter pyInterp = new PythonInterpreter()) {
@@ -79,7 +79,7 @@ public class PythonResource extends Resource {
       }
     }
 
-    SCRIPT_LOGGER.debug("PythonResource - execPython -> Stop");
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execPython -> Stop");
     return result;
   }
 
@@ -138,7 +138,7 @@ public class PythonResource extends Resource {
           @ThingworxServiceParameter(name = "parameters", description = "", baseType = "JSON", aspects = {"isRequired:true"}) JSONObject parameters,
           @ThingworxServiceParameter(name = "resultParameter", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String resultParameter,
           @ThingworxServiceParameter(name = "code", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String code) throws Exception {
-    SCRIPT_LOGGER.debug("PythonResource - execJavaScript -> Start");
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execJavaScript -> Start");
 
     Object result;
     Context cx = new ContextFactory().enterContext();
@@ -181,7 +181,7 @@ public class PythonResource extends Resource {
       throw new Exception("result is a not supported type " + object.getClass());
     }
 
-    SCRIPT_LOGGER.debug("PythonResource - execJavaScript -> Stop");
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execJavaScript -> Stop");
     return result;
   }
 

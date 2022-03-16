@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.ant.freeform</type>
     <configuration>
         <general-data xmlns="http://www.netbeans.org/ns/freeform-project/1">
-            <name>PythonResource</name>
+            <name>ScriptEngineResource</name>
         </general-data>
         <general-data xmlns="http://www.netbeans.org/ns/freeform-project/2">
             <!-- Do not use Project Properties customizer when editing this file manually. 
@@ -12,13 +12,13 @@
      property there. Adding 
      auxiliary.show.customizer.message=<message>
       will show your customized message when someone attempts to open the customizer.  -->
-            <name>PythonResource</name>
+            <name>ScriptEngineResource</name>
             <properties>
                 <property name="ant.script">build-extension.xml</property>
             </properties>
             <folders>
                 <source-folder>
-                    <label>PythonResource</label>
+                    <label>ScriptEngineResource</label>
                     <location>.</location>
                     <encoding>windows-1252</encoding>
                 </source-folder>

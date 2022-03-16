@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?> 
-<project name="PythonResource" basedir="." default="build"> 
+<project name="ScriptEngineResource" basedir="." default="build"> 
  
-  <property name="extension.jar" value="pythonresource.jar" /> 
+  <property name="extension.jar" value="scriptengineresource.jar" /> 
  
   <property name="target"         value="1.8" /> 
   <property name="source"         value="1.8" /> 
