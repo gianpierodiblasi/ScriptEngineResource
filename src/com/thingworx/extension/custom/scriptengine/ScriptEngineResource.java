@@ -15,12 +15,14 @@ import org.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.Wrapper;
 import org.python.core.PyBoolean;
 import org.python.core.PyFloat;
 import org.python.core.PyInteger;
 import org.python.core.PyList;
 import org.python.core.PyLong;
+import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.util.PythonInterpreter;
@@ -33,7 +35,6 @@ public class ScriptEngineResource extends Resource {
 
   @ThingworxServiceDefinition(name = "execPython", description = "", category = "", isAllowOverride = false, aspects = {"isAsync:false"})
   @ThingworxServiceResult(name = "result", description = "", baseType = "VARIANT")
-  @SuppressWarnings("null")
   public Object execPython(
           @ThingworxServiceParameter(name = "parameters", description = "", baseType = "JSON", aspects = {"isRequired:true"}) JSONObject parameters,
           @ThingworxServiceParameter(name = "resultParameter", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String resultParameter,
@@ -46,6 +47,10 @@ public class ScriptEngineResource extends Resource {
         String name = iter.next();
 
         Object parameter = parameters.get(name);
+        if (parameter == null || parameter == JSONObject.NULL || parameters.isNull(name)) {
+          throw new Exception("parameter " + name + " is null or undefined");
+        }
+
         if (parameter instanceof Boolean) {
           pyInterp.set(name, new PyBoolean(parameters.getBoolean(name)));
         } else if (parameter instanceof Number) {
@@ -62,6 +67,10 @@ public class ScriptEngineResource extends Resource {
       pyInterp.exec(code);
 
       PyObject pyObject = pyInterp.get(resultParameter);
+      if (pyObject == null || pyObject instanceof PyNone) {
+        throw new Exception("result is null or undefined");
+      }
+
       if (pyObject instanceof PyBoolean) {
         result = ((PyBoolean) pyObject).getBooleanValue();
       } else if (pyObject instanceof PyFloat) {
@@ -83,12 +92,15 @@ public class ScriptEngineResource extends Resource {
     return result;
   }
 
-  @SuppressWarnings("null")
   private PyList putIntoArrayPython(String name, JSONArray jsonArray) throws Exception {
     PyList pyList = new PyList();
 
     for (int index = 0; index < jsonArray.length(); index++) {
       Object cell = jsonArray.get(index);
+
+      if (cell == null || cell == JSONObject.NULL || jsonArray.isNull(index)) {
+        throw new Exception("array " + name + " has a null or undefined cell");
+      }
 
       if (cell instanceof Boolean) {
         pyList.add(new PyBoolean(jsonArray.getBoolean(index)));
@@ -106,11 +118,14 @@ public class ScriptEngineResource extends Resource {
     return pyList;
   }
 
-  @SuppressWarnings("null")
   private JSONArray getFromArrayPython(PyList pyList) throws Exception {
     JSONArray jsonArray = new JSONArray();
 
     for (PyObject cell : pyList.getArray()) {
+      if (cell == null || cell instanceof PyNone) {
+        throw new Exception("result array has a null or undefined cell");
+      }
+
       if (cell instanceof PyBoolean) {
         jsonArray.put(((PyBoolean) cell).getBooleanValue());
       } else if (cell instanceof PyFloat) {
@@ -133,7 +148,6 @@ public class ScriptEngineResource extends Resource {
 
   @ThingworxServiceDefinition(name = "execJavaScript", description = "", category = "", isAllowOverride = false, aspects = {"isAsync:false"})
   @ThingworxServiceResult(name = "result", description = "", baseType = "VARIANT")
-  @SuppressWarnings("null")
   public Object execJavaScript(
           @ThingworxServiceParameter(name = "parameters", description = "", baseType = "JSON", aspects = {"isRequired:true"}) JSONObject parameters,
           @ThingworxServiceParameter(name = "resultParameter", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String resultParameter,
@@ -150,6 +164,10 @@ public class ScriptEngineResource extends Resource {
         String name = iter.next();
 
         Object parameter = parameters.get(name);
+        if (parameter == null || parameter == JSONObject.NULL || parameters.isNull(name)) {
+          throw new Exception("parameter " + name + " is null or undefined");
+        }
+
         if (parameter instanceof Boolean) {
           scriptable.put(name, scriptable, Context.javaToJS(parameter, scriptable));
         } else if (parameter instanceof Number) {
@@ -166,9 +184,16 @@ public class ScriptEngineResource extends Resource {
       cx.compileString(code, "", 0, null).exec(cx, scriptable);
 
       Object object = scriptable.get(resultParameter, scriptable);
+      if (object == null || object instanceof Undefined) {
+        throw new Exception("result is null or undefined");
+      }
       if (object instanceof Wrapper) {
         object = ((Wrapper) object).unwrap();
       }
+      if (object == null || object instanceof Undefined) {
+        throw new Exception("result is null or undefined");
+      }
+
       if (object instanceof Boolean) {
         result = object;
       } else if (object instanceof Number) {
@@ -190,12 +215,15 @@ public class ScriptEngineResource extends Resource {
     return result;
   }
 
-  @SuppressWarnings("null")
   private Object[] putIntoArrayJavaScript(String name, JSONArray jsonArray) throws Exception {
     List<Object> list = new ArrayList<>();
 
     for (int index = 0; index < jsonArray.length(); index++) {
       Object cell = jsonArray.get(index);
+
+      if (cell == null || cell == JSONObject.NULL || jsonArray.isNull(index)) {
+        throw new Exception("array " + name + " has a null or undefined cell");
+      }
 
       if (cell instanceof Boolean) {
         list.add(cell);
@@ -213,14 +241,20 @@ public class ScriptEngineResource extends Resource {
     return list.toArray();
   }
 
-  @SuppressWarnings("null")
   private JSONArray getFromArrayJavaScript(Object[] objectArray) throws Exception {
     JSONArray jsonArray = new JSONArray();
 
     for (Object cell : objectArray) {
+      if (cell == null || cell instanceof Undefined) {
+        throw new Exception("result array has a null or undefined cell");
+      }
       if (cell instanceof Wrapper) {
         cell = ((Wrapper) cell).unwrap();
       }
+      if (cell == null || cell instanceof Undefined) {
+        throw new Exception("result array has a null or undefined cell");
+      }
+
       if (cell instanceof Boolean) {
         jsonArray.put(cell);
       } else if (cell instanceof Number) {
