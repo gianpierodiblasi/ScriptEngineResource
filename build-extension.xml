@@ -29,7 +29,8 @@
   <property name="package.common.ui.dir" value="${package.ui.basedir}/${common}" /> 
  
   <!--  Extension file info --> 
-  <property name="zip.file.name" value="${ant.project.name}.zip" /> 
+  <xmlproperty file="${config.dir}/metadata.xml" prefix="metadata" />
+  <property name="zip.file.name" value="${ant.project.name}-${metadata.Entities.ExtensionPackages.ExtensionPackage(packageVersion)}.zip" /> 
   
   <tstamp> 
     <format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" /> 
