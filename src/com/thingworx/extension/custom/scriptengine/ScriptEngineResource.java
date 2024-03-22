@@ -10,6 +10,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import jdk.jshell.Diag;
+import jdk.jshell.JShell;
+import jdk.jshell.JShellException;
+import jdk.jshell.Snippet;
+import jdk.jshell.SnippetEvent;
+import jdk.jshell.SourceCodeAnalysis;
+import jdk.jshell.VarSnippet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mozilla.javascript.Context;
@@ -271,5 +280,165 @@ public class ScriptEngineResource extends Resource {
     }
 
     return jsonArray;
+  }
+
+  @ThingworxServiceDefinition(name = "execJava", description = "", category = "", isAllowOverride = false, aspects = {"isAsync:false"})
+  @ThingworxServiceResult(name = "result", description = "", baseType = "VARIANT")
+  public Object execJava(
+          @ThingworxServiceParameter(name = "parameters", description = "", baseType = "JSON", aspects = {"isRequired:true"}) JSONObject parameters,
+          @ThingworxServiceParameter(name = "resultParameter", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String resultParameter,
+          @ThingworxServiceParameter(name = "code", description = "", baseType = "STRING", aspects = {"isRequired:true"}) String code) throws Exception {
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execJava -> Start");
+
+    Object result;
+    try (JShell js = JShell.create()) {
+      for (Iterator<String> iter = parameters.keys(); iter.hasNext();) {
+        String name = iter.next();
+
+        Object parameter = parameters.get(name);
+        if (parameter == null || parameter == JSONObject.NULL || parameters.isNull(name)) {
+          throw new Exception("parameter " + name + " is null or undefined");
+        }
+
+        if (parameter instanceof Boolean) {
+          js.eval("boolean " + name + " = " + parameters.getBoolean(name) + ";");
+        } else if (parameter instanceof Number) {
+          js.eval("double " + name + " = " + parameters.getDouble(name) + ";");
+        } else if (parameter instanceof String) {
+          js.eval("String " + name + " = " + parameters.getString(name) + ";");
+        } else if (parameter instanceof JSONArray) {
+          js.eval("Object[] " + name + " = " + this.putIntoArrayJava(name, parameters.getJSONArray(name)) + ";");
+        } else {
+          throw new Exception("parameter " + name + " is a not supported type " + parameter.getClass());
+        }
+      }
+
+      SourceCodeAnalysis sca = js.sourceCodeAnalysis();
+
+      List<String> snippets = new ArrayList<>();
+      while (!code.isEmpty()) {
+        SourceCodeAnalysis.CompletionInfo info = sca.analyzeCompletion(code);
+        snippets.add(info.source());
+        code = info.remaining();
+      }
+
+      StringBuilder builder = new StringBuilder();
+      List<SnippetEvent> events = snippets.stream().map(js::eval).flatMap(List::stream).collect(Collectors.toList());
+      for (SnippetEvent event : events) {
+        Snippet snippet = event.snippet();
+        if (snippet != null) {
+          js.diagnostics(snippet).filter(Diag::isError).forEach(diag -> builder.append(diag.getMessage(Locale.getDefault())).append("\n"));
+        }
+        snippet = event.causeSnippet();
+        if (snippet != null) {
+          js.diagnostics(snippet).filter(Diag::isError).forEach(diag -> builder.append(diag.getMessage(Locale.getDefault())).append("\n"));
+        }
+
+        JShellException exception = event.exception();
+        if (exception != null) {
+          builder.append(exception.getMessage()).append("\n");
+        }
+      }
+
+      if (builder.length() > 0) {
+        throw new Exception(builder.toString());
+      } else {
+        try {
+          VarSnippet snippet = js.variables().filter(variable -> variable.name().equals(resultParameter)).findFirst().get();
+          String value = js.varValue(snippet);
+
+          if (value == null) {
+            throw new Exception("result is null");
+          }
+
+          switch (snippet.typeName().toLowerCase()) {
+            case "boolean":
+              result = Boolean.valueOf(value);
+              break;
+            case "float":
+            case "double":
+            case "byte":
+            case "short":
+            case "int":
+            case "integer":
+            case "long":
+              result = Double.valueOf(value);
+              break;
+            case "string":
+              result = value;
+              break;
+            case "boolean[]":
+            case "float[]":
+            case "double[]":
+            case "byte[]":
+            case "short[]":
+            case "int[]":
+            case "integer[]":
+            case "long[]":
+            case "string[]":
+            case "object[]":
+              result = new JSONObject(Collections.singletonMap(resultParameter, this.getFromArrayJava(value)));
+              break;
+            default:
+              throw new Exception("result is a not supported type " + snippet.typeName());
+          }
+
+        } catch (IllegalStateException ex) {
+          throw ex;
+        }
+      }
+    }
+
+    SCRIPT_LOGGER.debug("ScriptEngineResource - execJava -> Stop");
+    return result;
+  }
+
+  private String putIntoArrayJava(String name, JSONArray jsonArray) throws Exception {
+    StringBuilder builder = new StringBuilder().append("new Object[] {");
+
+    for (int index = 0; index < jsonArray.length(); index++) {
+      Object cell = jsonArray.get(index);
+
+      if (cell == null || cell == JSONObject.NULL || jsonArray.isNull(index)) {
+        throw new Exception("array " + name + " has a null or undefined cell");
+      }
+
+      if (cell instanceof Boolean) {
+        builder.append(jsonArray.getBoolean(index)).append(", ");
+      } else if (cell instanceof Number) {
+        builder.append(jsonArray.getDouble(index)).append(", ");
+      } else if (cell instanceof String) {
+        builder.append(jsonArray.getString(index)).append(", ");
+      } else if (cell instanceof JSONArray) {
+        builder.append(this.putIntoArrayJava(name, jsonArray.getJSONArray(index))).append(", ");
+      } else {
+        throw new Exception("array " + name + " has a cell with a not supported type " + cell.getClass());
+      }
+    }
+
+    return builder.append("}").toString();
+  }
+
+  private JSONArray getFromArrayJava(String array) throws Exception {
+    return new JSONArray(array.
+            replaceAll("boolean\\[\\d+\\]", "").
+            replaceAll("float\\[\\d+\\]", "").
+            replaceAll("double\\[\\d+\\]", "").
+            replaceAll("byte\\[\\d+\\]", "").
+            replaceAll("short\\[\\d+\\]", "").
+            replaceAll("int\\[\\d+\\]", "").
+            replaceAll("long\\[\\d+\\]", "").
+            replaceAll("Boolean\\[\\d+\\]", "").
+            replaceAll("Float\\[\\d+\\]", "").
+            replaceAll("Double\\[\\d+\\]", "").
+            replaceAll("Byte\\[\\d+\\]", "").
+            replaceAll("Short\\[\\d+\\]", "").
+            replaceAll("Integer\\[\\d+\\]", "").
+            replaceAll("Long\\[\\d+\\]", "").
+            replaceAll("String\\[\\d+\\]", "").
+            replaceAll("Object\\[\\d+\\]", "").
+            replaceAll("\\{", "[").
+            replaceAll("\\}", "]")
+    );
   }
 }

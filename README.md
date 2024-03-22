@@ -1,10 +1,10 @@
 # ScriptEngineResource
-An extension to run external scripts (JavaScript and Python).
+An extension to run external scripts (Python, JavaScript and Java).
 
 **This Extension is provided as-is and without warranty or support. It is not part of the PTC product suite and there is no PTC support.**
 
 ## Description
-This extension allows to run external scripts (JavaScript and Python) inside a service.
+This extension allows to run external scripts (Python, JavaScript and Java) inside a service.
 
 ## Services
 - *execPython*: extecutes a Python code
@@ -14,6 +14,12 @@ This extension allows to run external scripts (JavaScript and Python) inside a s
     - code: the scripting code - STRING (No default value)
   - output: VARIANT (NUMBER, STRING, BOOLEAN, JSON)
 - *execJavaScript*: extecutes a JavaScript code
+  - input
+    - parameters: the input parameters, represented as a JSON object containing numbers, strings, booleans and arrays of numbers, strings, booleans and arrays (recursively) - JSON (No default value)
+    - resultParameter: parameter name of the result value - STRING (No default value)
+    - code: the scripting code - STRING (No default value)
+  - output: VARIANT (NUMBER, STRING, BOOLEAN, JSON)
+- *execJava*: extecutes a Java code
   - input
     - parameters: the input parameters, represented as a JSON object containing numbers, strings, booleans and arrays of numbers, strings, booleans and arrays (recursively) - JSON (No default value)
     - resultParameter: parameter name of the result value - STRING (No default value)
