@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import jdk.jshell.Diag;
 import jdk.jshell.JShell;
@@ -307,7 +308,12 @@ public class ScriptEngineResource extends Resource {
         } else if (parameter instanceof String) {
           js.eval("String " + name + " = \"" + parameters.getString(name).replace("\"", "\\\"") + "\";");
         } else if (parameter instanceof JSONArray) {
-          js.eval("Object[] " + name + " = " + this.putIntoArrayJava(name, parameters.getJSONArray(name)) + ";");
+          String array = this.putIntoArrayJava(name, parameters.getJSONArray(name));
+          String arrayType = array.substring(4, array.indexOf('['));
+          array = arrayType + "[] " + name + " = " + array + ";";
+          
+          js.eval(array);
+          SCRIPT_LOGGER.debug("ScriptEngineResource - execJava -> Added array parameter, " + array);
         } else {
           throw new Exception("parameter " + name + " is a not supported type " + parameter.getClass());
         }
@@ -394,7 +400,8 @@ public class ScriptEngineResource extends Resource {
   }
 
   private String putIntoArrayJava(String name, JSONArray jsonArray) throws Exception {
-    StringBuilder builder = new StringBuilder().append("new Object[] {");
+    StringBuilder builder = new StringBuilder();
+    Optional<String> arrayType = Optional.empty();
 
     for (int index = 0; index < jsonArray.length(); index++) {
       Object cell = jsonArray.get(index);
@@ -405,18 +412,26 @@ public class ScriptEngineResource extends Resource {
 
       if (cell instanceof Boolean) {
         builder.append(jsonArray.getBoolean(index)).append(", ");
+        arrayType = this.getArrayTypeJava(arrayType, "boolean");
       } else if (cell instanceof Number) {
         builder.append(jsonArray.getDouble(index)).append(", ");
+        arrayType = this.getArrayTypeJava(arrayType, "double");
       } else if (cell instanceof String) {
         builder.append('"').append(jsonArray.getString(index).replace("\"", "\\\"")).append("\", ");
+        arrayType = this.getArrayTypeJava(arrayType, "String");
       } else if (cell instanceof JSONArray) {
         builder.append(this.putIntoArrayJava(name, jsonArray.getJSONArray(index))).append(", ");
+        arrayType = this.getArrayTypeJava(arrayType, "Object");
       } else {
         throw new Exception("array " + name + " has a cell with a not supported type " + cell.getClass());
       }
     }
 
-    return builder.append("}").toString();
+    return "new " + arrayType.orElse("Object") + "[] {" + builder.toString() + "}";
+  }
+
+  private Optional<String> getArrayTypeJava(Optional<String> arrayType, String type) {
+    return arrayType.isEmpty() ? Optional.of(type) : arrayType.map(currentType -> currentType.equals(type) ? currentType : "Object");
   }
 
   private JSONArray getFromArrayJava(String array) throws Exception {
