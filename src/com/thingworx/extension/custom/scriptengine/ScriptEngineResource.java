@@ -305,7 +305,7 @@ public class ScriptEngineResource extends Resource {
         } else if (parameter instanceof Number) {
           js.eval("double " + name + " = " + parameters.getDouble(name) + ";");
         } else if (parameter instanceof String) {
-          js.eval("String " + name + " = " + parameters.getString(name) + ";");
+          js.eval("String " + name + " = \"" + parameters.getString(name).replace("\"", "\\\"") + "\";");
         } else if (parameter instanceof JSONArray) {
           js.eval("Object[] " + name + " = " + this.putIntoArrayJava(name, parameters.getJSONArray(name)) + ";");
         } else {
@@ -408,7 +408,7 @@ public class ScriptEngineResource extends Resource {
       } else if (cell instanceof Number) {
         builder.append(jsonArray.getDouble(index)).append(", ");
       } else if (cell instanceof String) {
-        builder.append(jsonArray.getString(index)).append(", ");
+        builder.append('"').append(jsonArray.getString(index).replace("\"", "\\\"")).append("\", ");
       } else if (cell instanceof JSONArray) {
         builder.append(this.putIntoArrayJava(name, jsonArray.getJSONArray(index))).append(", ");
       } else {
